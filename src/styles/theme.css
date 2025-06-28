@@ -1,0 +1,21 @@
+:root {
+    --bg-color: #ffffff;
+    --text-color: #000000;
+}
+
+[data-theme="dark"] {
+    --bg-color: #0f172a;
+    --text-color: #f1f5f9;
+    --2nd-bg-color: #1e293b;
+    --2nd-text-color: #a0aec0;
+    --3rd-bg-color: #334155;
+    --3rd-text-color: #cbd5e1;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
+}
