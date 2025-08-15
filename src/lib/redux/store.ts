@@ -3,6 +3,7 @@ import { authReducer } from "./slices/AuthSlice";
 import { profileReducer } from "./slices/LoggedInUserData";
 import { profilePhotoReducer } from "./slices/ProfilePhotoSlice";
 import { updatePasswordReducer } from "./slices/UpdatePasswordSlice";
+import { createPostReducer } from "./slices/CreatePostSlice";
 export const store = configureStore({
   // reducer for slices
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     profile: profileReducer,
     profilePhoto: profilePhotoReducer,
     updatePassword: updatePasswordReducer,
+    createPost: createPostReducer, // Assuming you have a createPostReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -24,7 +26,7 @@ export const store = configureStore({
     }),
 });
 
-export type dispatchType = typeof store.dispatch;
-// In your store.ts
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
+export default store;
