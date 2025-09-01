@@ -16,7 +16,7 @@ import {
   PopoverTrigger,
 } from "@/Components/ui/popover";
 import { Button } from "@/Components/ui/button";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Eye, EyeOff } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 const poppins = Poppins({
@@ -44,6 +44,8 @@ export default function Page() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRePassword, setShowRePassword] = useState(false);
 
   const formik = useFormik<FormValues & { dob: Date | null }>({
     initialValues: {
@@ -85,10 +87,22 @@ export default function Page() {
           }
         } else if (handleRegister.rejected.match(result)) {
           // Handle rejected promise
-          const errorMessage =
-            result.payload?.message ||
-            result.error?.message ||
-            "Registration failed";
+          let errorMessage = "Registration failed";
+          if (
+            result.payload &&
+            typeof result.payload === "object" &&
+            "message" in result.payload &&
+            typeof (result.payload as any).message === "string"
+          ) {
+            errorMessage = (result.payload as any).message;
+          } else if (
+            result.error &&
+            typeof result.error === "object" &&
+            "message" in result.error &&
+            typeof (result.error as any).message === "string"
+          ) {
+            errorMessage = (result.error as any).message;
+          }
           toast.error(errorMessage);
         }
       } catch (error: any) {
@@ -165,17 +179,27 @@ export default function Page() {
               >
                 Password
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                value={formik.values.password}
-              />
+              <div className="relative mt-1">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  required
+                  className="block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 pr-10 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  value={formik.values.password}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded p-1 text-gray-600 hover:text-gray-900"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               {formik.touched.password && formik.errors.password && (
                 <div className="text-red-500 text-xs mt-1">
                   {formik.errors.password}
@@ -189,17 +213,29 @@ export default function Page() {
               >
                 Repeat Password
               </label>
-              <input
-                id="rePassword"
-                name="rePassword"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                value={formik.values.rePassword}
-              />
+              <div className="relative mt-1">
+                <input
+                  id="rePassword"
+                  name="rePassword"
+                  type={showRePassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  required
+                  className="block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 pr-10 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  value={formik.values.rePassword}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowRePassword((s) => !s)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded p-1 text-gray-600 hover:text-gray-900"
+                  aria-label={
+                    showRePassword ? "Hide repeated password" : "Show repeated password"
+                  }
+                >
+                  {showRePassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               {formik.touched.rePassword && formik.errors.rePassword && (
                 <div className="text-red-500 text-xs mt-1">
                   {formik.errors.rePassword}

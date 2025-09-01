@@ -1,5 +1,3 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
-
 export interface IUserProfile {
   _id: string;
   name: string;

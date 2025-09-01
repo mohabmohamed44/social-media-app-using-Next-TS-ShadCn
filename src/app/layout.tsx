@@ -10,6 +10,7 @@ import "./globals.css";
 import "@/styles/theme.css";
 import { Toaster } from "react-hot-toast";
 import { is } from "date-fns/locale";
+import ScrollToTop from "@/Components/scrollToTop/scrollToTop";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +43,7 @@ export default function RootLayout({
               <Toaster position="top-center" />
               {!isAuthPage && <Navbar />}
               {children}
+              <ScrollToTop />
               {!isAuthPage && <Footer />}
             </ThemeProvider>
           </ReduxProvider>

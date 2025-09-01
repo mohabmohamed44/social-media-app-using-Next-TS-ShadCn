@@ -4,6 +4,9 @@ import { useParams } from "next/navigation";
 import { format } from "date-fns";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
+  fetchUserPosts
+} from "@/lib/redux/slices/getUserPostsSlice";
+import {
   getUserProfile,
   updateUserProfile,
   clearError,
@@ -11,6 +14,8 @@ import {
 } from "@/lib/redux/slices/LoggedInUserData";
 import "@/styles/theme.css";
 import { Poppins } from "next/font/google";
+import Image from "next/image";
+import { formatDistanceToNow } from "date-fns";
 import {
   uploadProfilePhoto,
   deleteProfilePhoto,
@@ -20,6 +25,8 @@ import {
   setPreviewUrl,
 } from "@/lib/redux/slices/ProfilePhotoSlice";
 import Link from "next/link";
+// Add Post type import from existing interface
+import { postInterface } from "@/interfaces/ICreatePost";
 
 const poppins = Poppins({
   weight: ["400", "500", "600"],
@@ -31,9 +38,10 @@ const poppins = Poppins({
 export default function ProfilePage() {
   const params = useParams();
   const dispatch = useAppDispatch();
-  // Get state from both slices
+  // Get state from all slices
   const profileState = useAppSelector((state) => state.profile);
   const profilePhotoState = useAppSelector((state) => state.profilePhoto);
+  const { posts, loading: loadingPosts, error: postsError } = useAppSelector((state) => state.userPosts);
 
   // Handle case where profile state might be undefined
   const { userProfile, loading, error, updating } = profileState || {
@@ -59,14 +67,23 @@ export default function ProfilePage() {
     dateOfBirth: "",
     gender: "",
   });
-
+  
   useEffect(() => {
-    dispatch(getUserProfile());
+    const loadData = async () => {
+      await dispatch(getUserProfile());
+      // Fetch user posts after profile is loaded
+      if (userProfile?._id) {
+        dispatch(fetchUserPosts({ userId: userProfile._id, limit: 6 }));
+      }
+    };
+    
+    loadData();
+    
     return () => {
       dispatch(clearError());
       dispatch(clearUploadError());
     };
-  }, [dispatch]);
+  }, [dispatch, userProfile?._id]);
 
   useEffect(() => {
     if (userProfile) {
@@ -431,10 +448,59 @@ export default function ProfilePage() {
         }}
       >
         <h2 className="text-xl font-bold mb-4">Posts</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* TODO: Add posts grid here */}
-          <div className="text-gray-600 text-center">No posts yet</div>
-        </div>
+        {loadingPosts ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : postsError ? (
+          <div className="text-red-500 text-center py-4">Error loading posts: {postsError}</div>
+        ) : posts && posts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {posts.map((post: postInterface) => (
+              <Link href={`/post/${post._id}`} 
+                key={post._id} 
+                className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300"
+              >
+                {post.image && (
+                  <div className="relative h-48 w-full">
+                    <Image
+                      src={post.image}
+                      alt={post.body || 'Post image'}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                )}
+                <div className="p-4">
+                    <h2 className="text-gray-800  dark:text-gray-300 text-md font-semibold line-clamp-3 mb-3">
+                    {post.body}
+                  </h2>
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <span>{post.createdAt ? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true }) : 'Some time ago'}</span>
+                    <div className="flex items-center space-x-2">
+                      <span className="flex items-center">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        {post?.comments?.length || 0}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <div className="text-gray-500 dark:text-gray-400 mb-2">
+              <svg className="w-16 h-16 mx-auto opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-gray-600 dark:text-gray-300">No posts yet</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">When you create posts, they'll appear here</p>
+          </div>
+        )}
       </div>
     </div>
   );

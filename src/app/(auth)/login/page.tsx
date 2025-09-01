@@ -28,7 +28,8 @@ export default function Page() {
     password: "",
   });
   const [loading, setLoading] = useState(false);
-
+  const [showPassword, setShowPassword] = useState(false);
+  const toggleShowPassword = () => setShowPassword((s) => !s);
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -91,16 +92,39 @@ export default function Page() {
                   <div className="flex items-center">
                     <Label htmlFor="password">Password</Label>
                   </div>
-                  <Input
-                    id="password"
-                    type="password"
-                    required
-                    placeholder="Enter Your Password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    aria-placeholder="password input"
-                  />
+                  {/* Password input with show/hide toggle */}
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      placeholder="Enter Your Password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      disabled={loading}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={toggleShowPassword}
+                      className="absolute inset-y-0 right-2 flex items-center px-2 text-sm text-muted-foreground hover:text-primary"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      tabIndex={0}
+                    >
+                      {showPassword ? (
+                        // eye-off icon
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19.5c-6.075 0-10.5-6.5-10.5-6.5a16.01 16.01 0 012.225-2.925M6.88 6.88A10.05 10.05 0 0112 4.5c6.075 0 10.5 6.5 10.5 6.5a16.1 16.1 0 01-1.657 2.497M3 3l18 18" />
+                        </svg>
+                      ) : (
+                        // eye icon
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          <circle cx="12" cy="12" r="3" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Logging in..." : "Login"}

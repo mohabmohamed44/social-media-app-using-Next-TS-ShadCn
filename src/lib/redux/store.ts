@@ -4,6 +4,8 @@ import { profileReducer } from "./slices/LoggedInUserData";
 import { profilePhotoReducer } from "./slices/ProfilePhotoSlice";
 import { updatePasswordReducer } from "./slices/UpdatePasswordSlice";
 import { createPostReducer } from "./slices/CreatePostSlice";
+import {userPosts} from "./slices/getUserPostsSlice";
+import {postsReducer} from './slices/getAllPosts';
 export const store = configureStore({
   // reducer for slices
   reducer: {
@@ -11,7 +13,9 @@ export const store = configureStore({
     profile: profileReducer,
     profilePhoto: profilePhotoReducer,
     updatePassword: updatePasswordReducer,
-    createPost: createPostReducer, // Assuming you have a createPostReducer
+    createPost: createPostReducer,
+    userPosts: userPosts,
+    posts: postsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
