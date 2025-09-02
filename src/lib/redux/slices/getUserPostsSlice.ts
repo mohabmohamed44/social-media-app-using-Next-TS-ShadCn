@@ -1,20 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import Cookies from 'js-cookie';
-import {Post} from "@/interfaces/ICreatePost";
+import {postInterface} from "@/interfaces/ICreatePost";
 // Base API URL
 const API_BASE_URL = 'https://linked-posts.routemisr.com';
 
 
-
-// Helper function to get token from cookies (matching your existing implementation)
-const getTokenFromCookies = () => {
-  if (typeof window === 'undefined') return null;
-  const cookies = document.cookie.split(';');
-  const tokenCookie = cookies.find(cookie => 
-    cookie.trim().startsWith('token=') || cookie.trim().startsWith('authToken=')
-  );
-  return tokenCookie ? tokenCookie.split('=')[1] : null;
-};
 
 // Async thunk for fetching user posts (specific user)
 export const fetchUserPosts = createAsyncThunk(
@@ -147,7 +138,7 @@ export const createPost = createAsyncThunk(
 interface UserPostsState {
   // Posts by user ID for caching multiple users' posts
   userPosts: Record<string, {
-    posts: Post[];
+    posts: postInterface[];
     loading: boolean;
     error: string | null;
     pagination: any;
@@ -158,7 +149,7 @@ interface UserPostsState {
   
   // Current user's posts
   myPosts: {
-    posts: Post[];
+    posts: postInterface[];
     loading: boolean;
     error: string | null;
     pagination: any;
@@ -175,7 +166,7 @@ interface UserPostsState {
   };
   
   // For backward compatibility with your existing code
-  posts: Post[];
+  posts: postInterface[];
   loading: boolean;
   error: string | null;
   total: number;

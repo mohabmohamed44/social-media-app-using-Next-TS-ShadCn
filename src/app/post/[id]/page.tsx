@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, MouseEvent } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -14,14 +14,14 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { Poppins } from "next/font/google";
-import { Comment, postInterface } from "@/interfaces/ICreatePost";
+import { Comment } from "@/interfaces/ICreatePost";
 import { UserDataInterface } from "@/interfaces/IRegisterData";
 import { AppDispatch, RootState } from "@/lib/redux/store";
 import { getSinglePost, clearError } from "@/lib/redux/slices/getAllPosts";
 import { deletePost, updatePost } from "@/lib/api/postService";
 
 import Cookies from "js-cookie";
-import { Card } from "@/Components/ui/card";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/Components/ui/avatar";
 import { Button } from "@/Components/ui/button";
 import { useRouter, useParams } from "next/navigation";
@@ -352,7 +352,7 @@ export default function PostDetailsPage() {
                   setLoading(false);
                 }}
               >
-                {({ handleChange, values, errors, isSubmitting }) => (
+                {({ handleChange, values, isSubmitting }) => (
                   <Form className="space-y-3">
                     <Input
                       name="body"
@@ -430,7 +430,7 @@ export default function PostDetailsPage() {
                   resetForm();
                 }}
               >
-                {({ handleChange, values, errors, isSubmitting }) => (
+                {({ handleChange, values, isSubmitting }) => (
                   <Form className="flex items-start gap-3">
                     <Avatar className="mt-1">
                       <AvatarImage
