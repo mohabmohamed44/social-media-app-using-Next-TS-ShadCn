@@ -34,7 +34,7 @@ export const getAllPosts = createAsyncThunk(
   async ({ page = 1, limit = 5 }: { page?: number; limit?: number } = {}, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `${API_BASE_URL}/posts?page=${page}&limit=${limit}`,
+        `${API_BASE_URL}/posts?page=${page}&limit=${limit}&sort=-createdAt`,
         {
           headers: {
             token: Cookies.get("token") || '',
@@ -52,12 +52,13 @@ export const getAllPosts = createAsyncThunk(
 );
 
 // Get latest posts (most recent)
+// Get all latest posts (most recent)
 export const getLatestPosts = createAsyncThunk(
   'posts/getLatestPosts',
-  async (limit:number = 10, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `${API_BASE_URL}/posts?sort=-createdAt&limit=${limit}`,
+        `${API_BASE_URL}/posts?sort=-createdAt`,
         {
           headers: {
             token: Cookies.get("token") || '',
@@ -163,9 +164,7 @@ const postsSlice = createSlice({
     
     builder.addCase(getAllPosts.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.posts = action.payload.posts.sort(
-        (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+      state.posts = action.payload.posts;
       state.totalPages = action.payload.paginationInfo?.numberOfPages || 1;
       state.totalPosts = action.payload.paginationInfo?.total || 0;
     });

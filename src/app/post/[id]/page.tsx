@@ -13,11 +13,12 @@ import {
   Trash2,
   MoreHorizontal,
 } from "lucide-react";
-
+import { Poppins } from "next/font/google";
 import { Comment, postInterface } from "@/interfaces/ICreatePost";
 import { UserDataInterface } from "@/interfaces/IRegisterData";
 import { AppDispatch, RootState } from "@/lib/redux/store";
 import { getSinglePost, clearError } from "@/lib/redux/slices/getAllPosts";
+import { deletePost, updatePost } from "@/lib/api/postService";
 
 import Cookies from "js-cookie";
 import { Card } from "@/Components/ui/card";
@@ -45,6 +46,11 @@ function getSafeImageUrl(photo: string | undefined | null): string {
   if (!trimmed) return "";
   return `${API_BASE_URL}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`;
 }
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+});
 
 export default function PostDetailsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -101,50 +107,6 @@ export default function PostDetailsPage() {
       toast.error("Failed to load comments");
     } finally {
       setCommentsLoading(false);
-    }
-  }
-
-  async function deletePost(postId: string) {
-    if (!postId) return;
-    try {
-      const token = Cookies.get("token");
-      if (!token) return toast.error("Authentication required");
-      const { data } = await axios.delete(`${API_BASE_URL}/posts/${postId}`, {
-        headers: { token },
-      });
-      if (data?.message === "success") {
-        toast.success("Post deleted successfully");
-        router.push("/");
-      }
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || "Failed to delete post";
-      toast.error(errorMessage);
-    }
-  }
-
-  async function editPost(values: { body: string }, postId: string) {
-    if (!values.body.trim() || !postId) return;
-    setLoading(true);
-    try {
-      const token = Cookies.get("token");
-      if (!token) return toast.error("Authentication required");
-      const { data } = await axios.put(
-        `${API_BASE_URL}/posts/${postId}`,
-        values,
-        { headers: { token } }
-      );
-      if (data?.message === "success") {
-        toast.success("Post updated successfully");
-        dispatch(getSinglePost(postId));
-        setEditingPostId(null);
-      }
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || "Failed to edit post";
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -228,7 +190,7 @@ export default function PostDetailsPage() {
   const post = singlePost;
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div className={`max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 ${poppins.className}`}>
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         {post.image && (
           <div>
@@ -268,12 +230,21 @@ export default function PostDetailsPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setEditingPostId(post._id)}>
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingPostId(post._id);
+                    }}
+                  >
                     <Edit className="h-4 w-4 mr-2" /> Edit
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="text-red-500"
-                    onClick={() => deletePost(post._id)}
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      await deletePost(post._id);
+                      router.push("/");
+                    }}
                   >
                     <Trash2 className="h-4 w-4 mr-2" /> Delete
                   </DropdownMenuItem>
@@ -291,7 +262,13 @@ export default function PostDetailsPage() {
                     .required("Post content cannot be empty")
                     .min(2, "Post must be at least 2 characters long"),
                 })}
-                onSubmit={async (values) => await editPost(values, post._id)}
+                onSubmit={async (values) => {
+                  setLoading(true);
+                  await updatePost(post._id, values);
+                  dispatch(getSinglePost(post._id));
+                  setEditingPostId(null);
+                  setLoading(false);
+                }}
               >
                 {({ handleChange, values, errors, isSubmitting }) => (
                   <Form className="space-y-3">
@@ -465,7 +442,8 @@ export default function PostDetailsPage() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     setMakeEditComment(true);
                                     setEditingCommentId(comment._id);
                                   }}
@@ -474,7 +452,10 @@ export default function PostDetailsPage() {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   className="text-red-500"
-                                  onClick={() => deleteComment(comment._id)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteComment(comment._id);
+                                  }}
                                 >
                                   <Trash2 className="h-4 w-4 mr-2" /> Delete
                                 </DropdownMenuItem>
