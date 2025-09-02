@@ -161,7 +161,7 @@ export default function NewPostPage() {
       removeImage();
       setPostWithoutImage(false);
       dispatch(resetPostState());
-      router.push("/");
+      router.push("/post");
     }
   }, [success, dispatch, router]);
 

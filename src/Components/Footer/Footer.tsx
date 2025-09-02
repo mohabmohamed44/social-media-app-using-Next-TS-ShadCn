@@ -40,27 +40,18 @@ export default function Footer({
   tagline = "About Connection",
   menuItems = [
     {
-      title: "App",
+      title: "LinkedPosts",
       links: [
         { text: "Posts", url: "/post" },
         { text: "Create", url: "/post/new" },
-        { text: "Explore", url: "/explore" },
       ],
     },
     {
-      title: "Company",
+      title: "Social Media",
       links: [
-        { text: "About", url: "/about" },
-        { text: "Contact", url: "/contact" },
-        { text: "Privacy", url: "/privacy" },
-      ],
-    },
-    {
-      title: "Social",
-      links: [
-        { text: "Twitter", url: "https://twitter.com" },
+        { text: "Facebook", url: "https://facebook.com" },
         { text: "Instagram", url: "https://instagram.com" },
-        { text: "LinkedIn", url: "https://linkedin.com" },
+        { text: "Twitter", url: "https://twitter.com" },
       ],
     },
   ],

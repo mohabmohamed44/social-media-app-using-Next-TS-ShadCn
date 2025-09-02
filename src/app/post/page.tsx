@@ -37,12 +37,8 @@ import Link from "next/link";
 import { Input } from "@/Components/ui/input";
 import { Textarea } from "@/Components/ui/textarea";
 import { Skeleton } from "@/Components/ui/skeleton";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/Components/ui/dropdown-menu";
+import { Badge } from "@/Components/ui/badge";
+
 
 // API base URL
 const API_BASE_URL = "https://linked-posts.routemisr.com";
@@ -61,6 +57,8 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "600", "700"],
 });
+
+
 
 const PostCardSkeleton = () => (
   <Card className="p-4 w-full mx-auto">
@@ -158,6 +156,31 @@ export default function PostDetailsCard() {
       getAllComments(postId);
     }
   }, [postId]);
+
+  // Close dropdowns when clicking outside - FIXED VERSION
+  useEffect(() => {
+    const handleClickOutside = (event: Event) => {
+      const target = event.target as HTMLElement;
+      
+      // Don't close if clicking on the dropdown button or dropdown content
+      if (target.closest('[data-dropdown-trigger]') || target.closest('[data-dropdown-content]')) {
+        return;
+      }
+      
+      if (editingPostId) {
+        setEditingPostId(null);
+      }
+      if (editingCommentId) {
+        setEditingCommentId(null);
+        setMakeEditComment(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [editingPostId, editingCommentId]);
 
   async function getAllComments(postId: string) {
     if (!postId) return;
@@ -328,45 +351,60 @@ export default function PostDetailsCard() {
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold">{post.user?.name}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-semibold">{post.user?.name}</p>
+                {userId?._id === post.user?._id && (
+                  <Badge variant="secondary">Yours</Badge>
+                )}
+              </div>
               <p className="text-sm text-gray-500">
                 {new Date(post.createdAt).toLocaleString()}
               </p>
             </div>
           </div>
           {userId?._id === post.user?._id && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 relative z-10"
+                data-dropdown-trigger
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingPostId(post._id === editingPostId ? null : post._id);
+                }}
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+              {editingPostId === post._id && (
+                <div 
+                  className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-50"
+                  data-dropdown-content
                 >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setEditingPostId(post._id);
-                  }}
-                >
-                  <Edit className="h-4 w-4 mr-2" /> Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-red-500"
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    await deletePost(post._id);
-                    dispatch(getAllPosts({ page: 1 }));
-                    dispatch(getLatestPosts());
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" /> Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <button
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Keep the dropdown open for editing
+                    }}
+                  >
+                    <Edit className="h-4 w-4" /> Edit
+                  </button>
+                  <button
+                    className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      await deletePost(post._id);
+                      dispatch(getAllPosts({ page: 1 }));
+                      dispatch(getLatestPosts());
+                      setEditingPostId(null);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" /> Delete
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
         <div className="mb-6">
@@ -505,37 +543,53 @@ export default function PostDetailsCard() {
                       {userId?._id ===
                         (typeof c.commentCreator === "object" &&
                           c.commentCreator._id) && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                            >
-                              <MoreHorizontal />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setMakeEditComment(true);
+                        <div className="relative">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 relative z-10"
+                            data-dropdown-trigger
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (editingCommentId === c._id) {
+                                setEditingCommentId(null);
+                                setMakeEditComment(false);
+                              } else {
                                 setEditingCommentId(c._id);
-                              }}
+                                setMakeEditComment(true);
+                              }
+                            }}
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                          {editingCommentId === c._id && (
+                            <div 
+                              className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-50"
+                              data-dropdown-content
                             >
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-red-500"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteComment(c._id);
-                              }}
-                            >
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              <button
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setMakeEditComment(true);
+                                  setEditingCommentId(c._id);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" /> Edit
+                              </button>
+                              <button
+                                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteComment(c._id);
+                                  setEditingCommentId(null);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" /> Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                     {makeEditComment && editingCommentId === c._id ? (
@@ -615,47 +669,64 @@ export default function PostDetailsCard() {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-semibold text-sm">
-                      {post.user?.name || "Unknown User"}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-sm">
+                        {post.user?.name || "Unknown User"}
+                      </p>
+                      {userId?._id === post.user?._id && (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                          Yours
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-500">
                       {new Date(post.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
                 {userId?._id === post.user?._id && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
+                  <div className="relative">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 relative z-10"
+                      data-dropdown-trigger
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingPostId(post._id === editingPostId ? null : post._id);
+                      }}
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                    {editingPostId === post._id && (
+                      <div 
+                        className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-50"
+                        data-dropdown-content
                       >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingPostId(post._id);
-                        }}
-                      >
-                        <Edit className="h-4 w-4 mr-2" /> Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-red-500"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          await deletePost(post._id);
-                          dispatch(getAllPosts({ page: 1 }));
-                          dispatch(getLatestPosts());
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" /> Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        <button
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Keep dropdown open for editing
+                          }}
+                        >
+                          <Edit className="h-4 w-4" /> Edit
+                        </button>
+                        <button
+                          className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            await deletePost(post._id);
+                            dispatch(getAllPosts({ page: 1 }));
+                            dispatch(getLatestPosts());
+                            setEditingPostId(null);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" /> Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
               {editingPostId === post._id ? (
@@ -678,7 +749,7 @@ export default function PostDetailsCard() {
                   {({ handleChange, values, errors, isSubmitting }) => (
                     <Form
                       className="space-y-3"
-                      onClick={(e) => {
+                      onClick={(e: MouseEvent) => {
                         e.stopPropagation();
                       }}
                     >
@@ -698,7 +769,7 @@ export default function PostDetailsCard() {
                         <Button
                           type="button"
                           variant="ghost"
-                          onClick={(e) => {
+                          onClick={(e: MouseEvent) => {
                             e.stopPropagation();
                             setEditingPostId(null);
                           }}
@@ -740,7 +811,7 @@ export default function PostDetailsCard() {
                 <Button
                   variant="ghost"
                   className="w-full"
-                  onClick={(e) => {
+                  onClick={(e: MouseEvent) => {
                     e.stopPropagation();
                     router.push(`/post/${post._id}`);
                   }}

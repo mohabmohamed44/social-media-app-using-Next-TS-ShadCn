@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, MouseEvent } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -27,12 +27,8 @@ import { Button } from "@/Components/ui/button";
 import { useRouter, useParams } from "next/navigation";
 import { Input } from "@/Components/ui/input";
 import { Skeleton } from "@/Components/ui/skeleton";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/Components/ui/dropdown-menu";
+import { Badge } from "@/Components/ui/badge";
+
 
 // API base URL
 const API_BASE_URL = "https://linked-posts.routemisr.com";
@@ -51,6 +47,8 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "500"],
 });
+
+
 
 export default function PostDetailsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -73,6 +71,31 @@ export default function PostDetailsPage() {
   const [makeComment, setMakeComment] = useState(false);
   const [makeEditComment, setMakeEditComment] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+
+  // Close dropdowns when clicking outside - FIXED VERSION
+  useEffect(() => {
+    const handleClickOutside = (event: Event) => {
+      const target = event.target as HTMLElement;
+      
+      // Don't close if clicking on the dropdown button or dropdown content
+      if (target.closest('[data-dropdown-trigger]') || target.closest('[data-dropdown-content]')) {
+        return;
+      }
+      
+      if (editingPostId) {
+        setEditingPostId(null);
+      }
+      if (editingCommentId) {
+        setEditingCommentId(null);
+        setMakeEditComment(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [editingPostId, editingCommentId]);
 
   useEffect(() => {
     const userDataString = Cookies.get("userData");
@@ -179,7 +202,47 @@ export default function PostDetailsPage() {
     }
   }
 
-  if (isLoading) return <SinglePostSkeleton />;
+  if (isLoading) return (
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <Skeleton className="w-full h-96" />
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <Skeleton className="h-12 w-12 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+            </div>
+            <Skeleton className="h-8 w-8" />
+          </div>
+          <div className="space-y-3 mb-6">
+            <Skeleton className="h-5 w-full" />
+            <Skeleton className="h-5 w-5/6" />
+          </div>
+          <div className="py-3 border-t border-b flex justify-around">
+            <Skeleton className="h-8 w-24" />
+            <Skeleton className="h-8 w-24" />
+          </div>
+          <div className="mt-6">
+            <Skeleton className="h-6 w-48 mb-4" />
+            <div className="space-y-4">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="flex items-start space-x-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
   if (reduxError)
     return <div className="text-center text-red-500 py-10">{reduxError}</div>;
   if (!singlePost)
@@ -191,17 +254,17 @@ export default function PostDetailsPage() {
 
   return (
     <div className={`max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 ${poppins.className}`}>
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        {post.image && (
-          <div>
-            <img
-              src={getSafeImageUrl(post.image)}
-              alt="Post image"
-              className="w-full h-auto max-h-[70vh] object-contain bg-gray-100"
-            />
-          </div>
-        )}
-        <div className="p-6">
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          {post.image && (
+            <div>
+              <img
+                src={getSafeImageUrl(post.image)}
+                alt="Post image"
+                className="w-full h-auto max-h-[70vh] object-contain bg-gray-100"
+              />
+            </div>
+          )}
+          <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <Avatar>
@@ -214,42 +277,61 @@ export default function PostDetailsPage() {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-semibold">
-                  {post.user?.name || "Unknown User"}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold">
+                    {post.user?.name || "Unknown User"}
+                  </p>
+                  {userId?._id === post.user?._id && (
+                    <Badge variant="secondary">Yours</Badge>
+                  )}
+                </div>
                 <p className="text-sm text-gray-500">
                   {new Date(post.createdAt).toLocaleString()}
                 </p>
               </div>
             </div>
             {userId?._id === post.user?._id && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingPostId(post._id);
-                    }}
+              <div className="relative">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 relative z-10"
+                  data-dropdown-trigger
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingPostId(post._id === editingPostId ? null : post._id);
+                  }}
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+                {editingPostId === post._id && (
+                  <div 
+                    className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-50"
+                    data-dropdown-content
                   >
-                    <Edit className="h-4 w-4 mr-2" /> Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="text-red-500"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      await deletePost(post._id);
-                      router.push("/");
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" /> Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <button
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Keep dropdown open for editing
+                      }}
+                    >
+                      <Edit className="h-4 w-4" /> Edit
+                    </button>
+                    <button
+                      className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        await deletePost(post._id);
+                        setEditingPostId(null);
+                        router.push("/");
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" /> Delete
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -430,37 +512,53 @@ export default function PostDetailsPage() {
                             {comment.commentCreator?.name || "Unknown User"}
                           </p>
                           {userId?._id === comment.commentCreator?._id && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7"
-                                >
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setMakeEditComment(true);
+                            <div className="relative">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 relative z-10"
+                                data-dropdown-trigger
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (editingCommentId === comment._id) {
+                                    setEditingCommentId(null);
+                                    setMakeEditComment(false);
+                                  } else {
                                     setEditingCommentId(comment._id);
-                                  }}
+                                    setMakeEditComment(true);
+                                  }
+                                }}
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                              {editingCommentId === comment._id && (
+                                <div 
+                                  className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-50"
+                                  data-dropdown-content
                                 >
-                                  <Edit className="h-4 w-4 mr-2" /> Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-red-500"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    deleteComment(comment._id);
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" /> Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                                  <button
+                                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setMakeEditComment(true);
+                                      setEditingCommentId(comment._id);
+                                    }}
+                                  >
+                                    <Edit className="h-4 w-4" /> Edit
+                                  </button>
+                                  <button
+                                    className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteComment(comment._id);
+                                      setEditingCommentId(null);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" /> Delete
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
                         {makeEditComment && editingCommentId === comment._id ? (
@@ -542,45 +640,3 @@ export default function PostDetailsPage() {
     </div>
   );
 }
-
-const SinglePostSkeleton = () => (
-  <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <Skeleton className="w-full h-96" />
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <Skeleton className="h-12 w-12 rounded-full" />
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-48" />
-              <Skeleton className="h-3 w-32" />
-            </div>
-          </div>
-          <Skeleton className="h-8 w-8" />
-        </div>
-        <div className="space-y-3 mb-6">
-          <Skeleton className="h-5 w-full" />
-          <Skeleton className="h-5 w-5/6" />
-        </div>
-        <div className="py-3 border-t border-b flex justify-around">
-          <Skeleton className="h-8 w-24" />
-          <Skeleton className="h-8 w-24" />
-        </div>
-        <div className="mt-6">
-          <Skeleton className="h-6 w-48 mb-4" />
-          <div className="space-y-4">
-            {[...Array(2)].map((_, i) => (
-              <div key={i} className="flex items-start space-x-3">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-4 w-1/4" />
-                  <Skeleton className="h-4 w-3/4" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-);

@@ -88,12 +88,6 @@ const Navbar = () => {
               >
                 Create
               </Link>
-              <Link
-                href="/explore"
-                className={`${textMain} ${textHover} px-3 py-2 rounded-md text-sm font-medium`}
-              >
-                Explore
-              </Link>
             </div>
           </div>
 
