@@ -9,7 +9,6 @@ import Footer from "@/Components/Footer/Footer";
 import "./globals.css";
 import "@/styles/theme.css";
 import { Toaster } from "react-hot-toast";
-import { is } from "date-fns/locale";
 import ScrollToTop from "@/Components/scrollToTop/scrollToTop";
 
 const geistSans = Geist({
