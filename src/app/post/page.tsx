@@ -38,6 +38,7 @@ import { Input } from "@/Components/ui/input";
 import { Textarea } from "@/Components/ui/textarea";
 import { Skeleton } from "@/Components/ui/skeleton";
 import { Badge } from "@/Components/ui/badge";
+import Image from "next/image";
 
 
 // API base URL
@@ -196,6 +197,7 @@ export default function PostDetailsCard() {
       setTotalComments(data?.total || 0);
     } catch (error) {
       toast.error("Failed to load comments");
+      throw error;
     } finally {
       setCommentsLoading(false);
     }
@@ -257,7 +259,7 @@ export default function PostDetailsCard() {
     const pageNumbers = [];
     const maxVisiblePages = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
@@ -329,9 +331,11 @@ export default function PostDetailsCard() {
       className={`bg-white rounded-lg shadow-md overflow-hidden ${poppins.className}`}
     >
       {post.image && (
-        <img
+        <Image
           src={getSafeImageUrl(post.image)}
           alt="Post"
+          width={100}
+          height={100}
           className="w-full h-auto max-h-[70vh] object-contain bg-gray-100"
           onError={(e) =>
             ((e.target as HTMLImageElement).src = "/placeholder.png")
@@ -795,7 +799,7 @@ export default function PostDetailsCard() {
                   </div>
                   {post.image && (
                     <div className="mb-3">
-                      <img
+                      <Image
                         src={getSafeImageUrl(post.image)}
                         alt="Post"
                         className="w-full h-auto object-cover rounded-lg"

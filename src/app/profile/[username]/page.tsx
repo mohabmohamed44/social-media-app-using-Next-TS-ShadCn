@@ -240,7 +240,7 @@ export default function ProfilePage() {
         <div className="flex flex-col md:flex-row items-center md:items-start md:space-x-8">
           {/* Profile Photo Section */}
           <div className="relative w-32 h-32 mb-4 md:mb-0">
-            <img
+            <Image
               src={previewUrl || userProfile.photo || "/default-avatar.png"}
               alt={userProfile.name}
               className="rounded-full w-full h-full object-cover border-2 border-gray-200"

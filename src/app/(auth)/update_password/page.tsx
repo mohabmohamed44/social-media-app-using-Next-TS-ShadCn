@@ -4,7 +4,6 @@ import { useTheme } from "@/lib/context/themeContext";
 import { Poppins } from "next/font/google";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import "@/styles/theme.css";
 
 const poppins = Poppins({
   weight: ["400", "500", "600", "700"],
