@@ -25,8 +25,13 @@ jobs:
       - name: Build the application
         run: npm run build
 
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
+      - name: Clear npm global cache and reinstall Vercel CLI
+        run: |
+          npm cache clean --force
+          npm install -g vercel@latest --force
+
+      - name: Verify Vercel CLI version
+        run: vercel --version
 
       - name: Deploy to Vercel
         env:
