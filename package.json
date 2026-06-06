@@ -33,7 +33,7 @@
     "lucide-react": "^0.518.0",
     "motion": "^12.18.1",
     "next": "^16.2.7",
-    "radix-ui": "^1.4.3",
+    "radix-ui": "^1.5.0",
     "react": "^19.2.7",
     "react-day-picker": "^9.7.0",
     "react-dom": "^19.2.7",
