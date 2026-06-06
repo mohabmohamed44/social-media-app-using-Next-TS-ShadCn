@@ -10,8 +10,6 @@ jobs:
   deploy:
     name: Deploy Social Media App
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,7 +17,7 @@ jobs:
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"
 
       - name: Install dependencies
         run: npm ci
@@ -32,4 +30,4 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: npm run deploy -- --token=${{ secrets.VERCEL_TOKEN }} --prod
+        run: npm run deploy -- --token=${{ secrets.VERCEL_TOKEN }} --prod --yes

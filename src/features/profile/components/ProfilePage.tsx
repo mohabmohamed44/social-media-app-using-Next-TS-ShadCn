@@ -318,7 +318,7 @@ export function ProfilePage() {
                   </div>
                 )}
                 <div className="p-4">
-                  <h2 className="text-md font-semibold line-clamp-3 mb-3">
+                  <h2 className="text-md font-semibold line-clamp-3 mb-3 dark:text-slate-600 text-gray-700">
                     {post.body}
                   </h2>
                   <span className="text-xs text-gray-500">
