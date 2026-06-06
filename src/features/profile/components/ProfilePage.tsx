@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { format, formatDistanceToNow } from "date-fns";
-import { Poppins } from "next/font/google";
+import { PencilIcon, TrashIcon, ArrowUpTrayIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useProfile } from "../hooks/useProfile";
 import { useUpdateProfile } from "../hooks/useUpdateProfile";
 import {
@@ -17,6 +17,7 @@ import type { UpdateProfileData } from "../types";
 import type { Post } from "@/features/posts/types";
 import { getSafeImageUrl } from "@/features/posts/lib/imageUtils";
 import { Button } from "@/shared/components/ui/button";
+import { Poppins } from "next/font/google";
 
 const poppins = Poppins({
   weight: ["400", "500", "600"],
@@ -158,7 +159,7 @@ export function ProfilePage() {
               className="rounded-full w-full h-full object-cover border-2 border-gray-200"
             />
             {isOwnProfile && (
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 space-y-2 min-w-max">
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex items-center gap-1">
                 <input
                   type="file"
                   id="photo-upload"
@@ -168,35 +169,39 @@ export function ProfilePage() {
                 />
                 <label
                   htmlFor="photo-upload"
-                  className="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded-full text-sm inline-block hover:bg-blue-600 text-center"
+                  className="cursor-pointer bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors"
+                  title="Change Photo"
                 >
-                  Change Photo
+                  <PencilIcon className="w-4 h-4" />
                 </label>
                 {selectedFile && (
-                  <div className="flex space-x-1">
+                  <>
                     <button
                       onClick={handleUploadPhoto}
-                      className="bg-green-500 text-white px-3 py-2 rounded-full text-sm"
+                      className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors"
+                      title="Upload"
                     >
-                      Upload
+                      <ArrowUpTrayIcon className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => {
                         setSelectedFile(null);
                         setPreviewUrl(null);
                       }}
-                      className="bg-gray-500 text-white px-3 py-2 rounded-full text-sm"
+                      className="bg-gray-500 text-white p-2 rounded-full hover:bg-gray-600 transition-colors"
+                      title="Cancel"
                     >
-                      Cancel
+                      <XMarkIcon className="w-4 h-4" />
                     </button>
-                  </div>
+                  </>
                 )}
                 {userProfile.photo && (
                   <button
                     onClick={handleDeletePhoto}
-                    className="bg-red-500 text-white px-3 py-2 rounded-full text-sm"
+                    className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
+                    title="Remove Photo"
                   >
-                    Remove
+                    <TrashIcon className="w-4 h-4" />
                   </button>
                 )}
               </div>
