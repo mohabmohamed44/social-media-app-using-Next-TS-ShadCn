@@ -1,11 +1,9 @@
 name: Continuous Deployment
-
 on:
   push:
     branches:
       - main
       - master
-
 jobs:
   deploy:
     name: Deploy Social Media App
@@ -25,17 +23,12 @@ jobs:
       - name: Build the application
         run: npm run build
 
-      - name: Clear npm global cache and reinstall Vercel CLI
-        run: |
-          npm cache clean --force
-          npm install -g vercel@latest --force
-
-      - name: Verify Vercel CLI version
-        run: vercel --version
+      - name: Install Vercel CLI
+        run: npm install -g vercel@47.2.2
 
       - name: Deploy to Vercel
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: npm run deploy -- --token=${{ secrets.VERCEL_TOKEN }} --prod --yes
+        run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
