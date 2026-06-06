@@ -1,27 +1,10 @@
-"use client";
-import UpdatePasswordForm from "@/Components/UpdatePasswordForm/UpdatePasswordForm";
-import { useTheme } from "@/lib/context/themeContext";
-import { Poppins } from "next/font/google";
-import * as Yup from "yup";
-import { useFormik } from "formik";
-
-const poppins = Poppins({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin"],
-  variable: "--font-poppins",
-});
+import PrivateRoute from "@/features/auth/guards/PrivateRoute";
+import { UpdatePasswordForm } from "@/features/auth/components/UpdatePasswordForm";
 
 export default function UpdatePasswordPage() {
-  const { theme } = useTheme();
   return (
-    <div
-      className={`${poppins.className}`}
-      style={{
-        backgroundColor: "var(--bg-color)",
-        color: "var(--text-color)",
-      }}
-    >
+    <PrivateRoute>
       <UpdatePasswordForm />
-    </div>
+    </PrivateRoute>
   );
 }

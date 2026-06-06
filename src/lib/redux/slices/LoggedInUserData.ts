@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
@@ -17,6 +17,7 @@ export interface IUserProfile {
 }
 
 export interface IProfileState {
+  username: string | null;
   userProfile: IUserProfile | null;
   loading: boolean;
   error: string | null;
@@ -30,6 +31,7 @@ export interface IUpdateProfileData {
 }
 
 const initialState: IProfileState = {
+  username: null,
   userProfile: null,
   loading: false,
   error: null,
@@ -39,7 +41,7 @@ const initialState: IProfileState = {
 // Get user profile
 export const getUserProfile = createAsyncThunk(
   "profile/getUserProfile",
-  async (_, { rejectWithValue }) => {
+  async (_: any, { rejectWithValue }: { rejectWithValue: (value: string) => any }) => {
     const token = Cookies.get("token");
     if (!token) {
       toast.error("No authentication token found");
@@ -68,7 +70,7 @@ export const getUserProfile = createAsyncThunk(
 // Update user profile
 export const updateUserProfile = createAsyncThunk(
   "profile/updateUserProfile",
-  async (profileData: IUpdateProfileData, { rejectWithValue }) => {
+  async (profileData: IUpdateProfileData, { rejectWithValue }: { rejectWithValue: (value: string) => any }) => {
     const token = Cookies.get("token");
     if (!token) {
       toast.error("No authentication token found");
@@ -101,64 +103,66 @@ const profileSlice = createSlice({
   name: "profile",
   initialState,
   reducers: {
-    clearProfile: (state) => {
+    clearProfile: (state: IProfileState) => {
       state.userProfile = null;
       state.loading = false;
       state.error = null;
       state.updating = false;
-      // Clear username from localStorage
-      localStorage.removeItem("username");
-    },
-    clearError: (state) => {
-      state.error = null;
-    },
-    setProfileData: (state, action) => {
-      state.userProfile = action.payload;
-      // Store username in localStorage
-      if (action.payload?.name) {
-        localStorage.setItem("username", action.payload.name);
+      if (typeof window !== "undefined") {
+        // Clear username from Cookies
+        Cookies.remove("username");
       }
     },
-    updateProfilePhoto: (state, action) => {
+    clearError: (state: IProfileState) => {
+      state.error = null;
+    },
+    setProfileData: (state: IProfileState, action: PayloadAction<{ user: IUserProfile }>) => {
+      state.userProfile = action.payload.user;
+      // Store username in Cookies
+      if (typeof window !== "undefined" && action.payload?.user?.name && typeof Cookies !== "undefined") {
+        Cookies.set("username", action.payload.user.name);
+      }
+    },
+    updateProfilePhoto: (state: IProfileState, action: PayloadAction<{ photo: string }>) => {
       if (state.userProfile) {
         state.userProfile.photo = action.payload.photo;
       }
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: (builder: any) => {
     builder
       // Get Profile Cases
-      .addCase(getUserProfile.pending, (state) => {
+      .addCase(getUserProfile.pending, (state: IProfileState) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getUserProfile.fulfilled, (state, action) => {
+      .addCase(getUserProfile.fulfilled, (state: IProfileState, action: PayloadAction<{ user: IUserProfile }>) => {
         state.loading = false;
         state.userProfile = action.payload.user;
         state.error = null;
-        if (action.payload.user.username) {
-          Cookies.set("username", action.payload.user.username);
+        if (typeof window !== "undefined" && action.payload.user?.name) {
+          Cookies.set("username", action.payload.user.name);
         }
       })
-      .addCase(getUserProfile.rejected, (state, action) => {
+      .addCase(getUserProfile.rejected, (state: IProfileState, action: PayloadAction<string>) => {
         state.loading = false;
         state.error = action.payload as string;
       })
 
       // Update Profile Cases
-      .addCase(updateUserProfile.pending, (state, action) => {
+      .addCase(updateUserProfile.pending, (state: IProfileState) => {
         state.updating = true;
         state.error = null;
       })
-      .addCase(updateUserProfile.fulfilled, (state, action) => {
+      .addCase(updateUserProfile.fulfilled, (state: IProfileState, action: PayloadAction<{ user: IUserProfile }>) => {
         state.updating = false;
         state.userProfile = action.payload.user;
         state.error = null;
-        if (action.payload.user.username) {
-          Cookies.set("username", action.payload.user.username);
+        if (action.payload.user?.name) {
+          Cookies.set("username", action.payload.user.name);
         }
       })
-      .addCase(updateUserProfile.rejected, (state, action) => {
+      .addCase(updateUserProfile.rejected, (state: IProfileState, action: PayloadAction<string>) => {
         state.updating = false;
         state.error = action.payload as string;
       });
