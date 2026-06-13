@@ -11,7 +11,7 @@
     "test": "echo \"No tests configured yet\" && exit 0"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.4",
+    "@headlessui/react": "^2.2.10",
     "@heroicons/react": "^2.2.0",
     "@material-tailwind/react": "^2.1.10",
     "@radix-ui/react-avatar": "^1.1.10",
